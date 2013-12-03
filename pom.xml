@@ -1,0 +1,58 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.exoplatform.berkeley</groupId>
+	<artifactId>berkeley-db</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0</version>
+	<name>berkeley-db</name>
+	<url>http://maven.apache.org</url>
+
+	<organization>
+		<name>Oracle Corporation</name>
+		<url>http://www.oracle.com/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>Sleepycat License</name>
+			<url>http://download.oracle.com/maven/com/sleepycat/je/license.txt</url>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>Oracle OTN Network Forum for Berkeley DB Java Edition</system>
+		<url>http://forums.oracle.com/forums/forum.jspa?forumID=273</url>
+	</issueManagement>
+
+	<mailingLists>
+		<mailingList>
+			<name>Oracle Berkeley DB Products Release Announcement List</name>
+			<subscribe>bdb-subscribe@oss.oracle.com</subscribe>
+			<unsubscribe>bdb-unsubscribe@oss.oracle.com</unsubscribe>
+		</mailingList>
+	</mailingLists>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.sleepycat</groupId>
+			<artifactId>je</artifactId>
+			<version>5.0.73</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>oracleReleases</id>
+			<name>Oracle Released Java Packages</name>
+			<url>http://download.oracle.com/maven</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+</project>
