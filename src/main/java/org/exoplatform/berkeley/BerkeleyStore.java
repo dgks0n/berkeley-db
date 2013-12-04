@@ -39,16 +39,14 @@ public class BerkeleyStore {
   /**
    * Default folder for stored files (inside working directory).
    */
-  public static final String ENVIROMENT_FOLDER_PATH = "berkeleyEnv";
+  public static final String ENVIROMENT_FOLDER_PATH = "db";
   
   /**
    * String used to identify the string database.
    */
-  public static final String STRING_PATH = "dataEnv";
+  public static final String STRING_PATH = "berkeley";
   
   public static final String SUPPORTED_ENCODE = "UTF-8";
-  
-  BerkeleyEnvironmentConfig berkeleyEnvironmentConfig;
   
   Environment environment;
   
@@ -71,9 +69,8 @@ public class BerkeleyStore {
    */
   public BerkeleyStore(String folder) {
     try {
-      this.berkeleyEnvironmentConfig = BerkeleyEnvironmentConfig.getInstance();
-      this.environment = berkeleyEnvironmentConfig.createDatabaseEnvironment(folder);
-      this.database = berkeleyEnvironmentConfig.openConnection(this.environment, STRING_PATH, true, false);
+      this.environment = BerkeleyEnvironment.getInstance().createDatabaseEnvironment(folder);
+      this.database = BerkeleyEnvironment.getInstance().openConnection(this.environment, STRING_PATH, true, false);
     } catch (BerkeleyException e) {
       System.err.println("Couldn't get berkeley enviroment " + e.getMessage());
     } catch (DatabaseNotFoundException e) {
@@ -101,6 +98,35 @@ public class BerkeleyStore {
     try {
       DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes(SUPPORTED_ENCODE));
       DatabaseEntry valueEntry = new DatabaseEntry(value.getBytes(SUPPORTED_ENCODE));
+      
+      database.put(null, keyEntry, valueEntry);
+    } catch (UnsupportedEncodingException e) {
+      throw new BerkeleyException("Key and value have unsupported utf-8 encoding" + e.getMessage());
+    }
+  }
+  
+  /**
+   * Put key value pair into the map. Any existing value with same key is 
+   * overwritten. Write is synchronized to the disc before returning 
+   * (fulfilling ACID).
+   * 
+   * Pairs inserted with putObject method are in different namespace than this
+   * so same key may exist in object and string namespace.
+   * 
+   * @param key
+   *              - the string key
+   * @param bytes
+   *              - the bytes of value
+   *              
+   * @throws BerkeleyException
+   */
+  public void put(String key, byte[] bytes) throws BerkeleyException {
+    if (key == null || bytes == null || bytes.length == 0)
+      throw new BerkeleyException("Key and value can not be null for put() function");
+    
+    try {
+      DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes(SUPPORTED_ENCODE));
+      DatabaseEntry valueEntry = new DatabaseEntry(bytes);
       
       database.put(null, keyEntry, valueEntry);
     } catch (UnsupportedEncodingException e) {
@@ -140,8 +166,12 @@ public class BerkeleyStore {
     return value;
   }
   
+  /**
+   * Close all databases and the environment
+   */
   public void close() {
-    berkeleyEnvironmentConfig.closeDatabase(database);
-    berkeleyEnvironmentConfig.closeConnection(environment);
+    BerkeleyEnvironment berkeleyEnviroment = BerkeleyEnvironment.getInstance();
+    berkeleyEnviroment.closeDatabase(database);
+    berkeleyEnviroment.closeConnection(environment);
   }
 }

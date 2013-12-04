@@ -28,15 +28,15 @@ import com.sleepycat.je.EnvironmentConfig;
  * Created by The eXo Platform SAS
  * @author <a href="mailto:exo@exoplatform.com">eXoPlatform</a>
  *          
- * @version BerkeleyEnvironmentConfig.java Dec 4, 2013
+ * @version BerkeleyEnvironment.java Dec 4, 2013
  */
-public class BerkeleyEnvironmentConfig implements EnvironmentConfigurator {
+public class BerkeleyEnvironment implements IBerkeleyEnvironment {
   
-  private static BerkeleyEnvironmentConfig _berkeleyEnvironmentConfig;
+  private static BerkeleyEnvironment _berkeleyEnvironmentConfig;
   
-  public static BerkeleyEnvironmentConfig getInstance() {
+  public static BerkeleyEnvironment getInstance() {
     if (_berkeleyEnvironmentConfig == null)
-      _berkeleyEnvironmentConfig = new BerkeleyEnvironmentConfig();
+      _berkeleyEnvironmentConfig = new BerkeleyEnvironment();
     
     return _berkeleyEnvironmentConfig;
   }

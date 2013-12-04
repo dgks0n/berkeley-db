@@ -23,9 +23,9 @@ import com.sleepycat.je.Environment;
  * Created by The eXo Platform SAS
  * @author <a href="mailto:exo@exoplatform.com">eXoPlatform</a>
  *          
- * @version EnvironmentConfigurator.java Dec 4, 2013
+ * @version IBerkeleyEnvironment.java Dec 4, 2013
  */
-public interface EnvironmentConfigurator {
+public interface IBerkeleyEnvironment {
 
   /**
    * Open a database environment by instantiating an Environment object. You
@@ -84,7 +84,7 @@ public interface EnvironmentConfigurator {
   public void closeConnection(Environment environment);
   
   /**
-   * Close database
+   * Close all databases and the environment.
    * 
    * @param database
    *              - 
