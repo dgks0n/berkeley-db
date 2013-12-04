@@ -101,7 +101,7 @@ public class BerkeleyStore {
       
       database.put(null, keyEntry, valueEntry);
     } catch (UnsupportedEncodingException e) {
-      throw new BerkeleyException("Key and value have unsupported utf-8 encoding" + e.getMessage());
+      throw new BerkeleyException("Key and value have unsupported utf-8 encoding " + e.getMessage());
     }
   }
   
@@ -125,10 +125,52 @@ public class BerkeleyStore {
       throw new BerkeleyException("Key and value can not be null for put() function");
     
     try {
-      DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes(SUPPORTED_ENCODE));
-      DatabaseEntry valueEntry = new DatabaseEntry(bytes);
+//      Transaction transaction = null;
+//      TransactionConfig txnConfig = new TransactionConfig();
+//      txnConfig.setSerializableIsolation(true);
+//      transaction = environment.beginTransaction(null, txnConfig);
+//      
+      DatabaseEntry theKey = new DatabaseEntry(key.getBytes(SUPPORTED_ENCODE));
+      DatabaseEntry theData = new DatabaseEntry(bytes);
       
-      database.put(null, keyEntry, valueEntry);
+      database.put(null, theKey, theData);
+    } catch (UnsupportedEncodingException e) {
+      throw new BerkeleyException("Key and value have unsupported utf-8 encoding" + e.getMessage());
+    }
+  }
+  
+  /**
+   * Put key value pair into the map. Any existing value with same key is 
+   * overwritten. Write is synchronized to the disc before returning 
+   * (fulfilling ACID).
+   * 
+   * Pairs inserted with putObject method are in different namespace than this
+   * so same key may exist in object and string namespace.
+   * 
+   * @param key
+   *              - the string key
+   * @param bytes
+   *              - the bytes of value
+   *              
+   * @throws BerkeleyException
+   */
+  public void put(String key, byte[] bytes, boolean isOverwrite) throws BerkeleyException {
+    if (key == null || bytes == null || bytes.length == 0)
+      throw new BerkeleyException("Key and value can not be null for put() function");
+    
+    try {
+//      Transaction transaction = null;
+//      TransactionConfig txnConfig = new TransactionConfig();
+//      txnConfig.setSerializableIsolation(true);
+//      transaction = environment.beginTransaction(null, txnConfig);
+      
+      DatabaseEntry theKey = new DatabaseEntry(key.getBytes(SUPPORTED_ENCODE));
+      DatabaseEntry theData = new DatabaseEntry(bytes);
+      
+      if (isOverwrite)
+        database.put(null, theKey, theData);
+      else
+        database.putNoOverwrite(null, theKey, theData);
     } catch (UnsupportedEncodingException e) {
       throw new BerkeleyException("Key and value have unsupported utf-8 encoding" + e.getMessage());
     }

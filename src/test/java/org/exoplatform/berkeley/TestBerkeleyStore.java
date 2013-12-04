@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -32,9 +33,13 @@ public class TestBerkeleyStore {
 
   BerkeleyStore berkeleyStore;
   
+  @Before
+  public void setup() {
+    berkeleyStore = new BerkeleyStore();
+  }
+  
   @Test
   public void testBerkeleyStore() throws BerkeleyException {
-    berkeleyStore = new BerkeleyStore();
     berkeleyStore.put("88d0fd72378f1d01107738b05f08655e4f2fed1d", "Oracle Berkeley DB Data Store");
     
     String data = berkeleyStore.get("88d0fd72378f1d01107738b05f08655e4f2fed1d");
@@ -43,11 +48,17 @@ public class TestBerkeleyStore {
   
   @Test
   public void testBerkeleyStoreWithByte() throws BerkeleyException, UnsupportedEncodingException {
-    berkeleyStore = new BerkeleyStore();
     berkeleyStore.put("94961cf809529c135f53f4425ff8d7ea114a0908", "Berkeley DB".getBytes("UTF-8"));
     
     String data = berkeleyStore.get("94961cf809529c135f53f4425ff8d7ea114a0908");
     assertEquals("Berkeley DB", data);
   }
-
+  
+  @Test
+  public void testBerkeleyStoreWithoutDuplicate() throws BerkeleyException, UnsupportedEncodingException {
+    berkeleyStore.put("94961cf809529c135f53f4425ff8d7ea114a0908", "Berkeley DB Java Edition".getBytes("UTF-8"), false);
+    
+    String data = berkeleyStore.get("94961cf809529c135f53f4425ff8d7ea114a0908");
+    assertEquals("Berkeley DB", data);
+  }
 }

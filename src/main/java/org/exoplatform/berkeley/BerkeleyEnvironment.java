@@ -18,8 +18,11 @@ package org.exoplatform.berkeley;
 
 import java.io.File;
 
+import org.exoplatform.berkeley.comparator.BerkeleyComparator;
+
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
@@ -32,13 +35,13 @@ import com.sleepycat.je.EnvironmentConfig;
  */
 public class BerkeleyEnvironment implements IBerkeleyEnvironment {
   
-  private static BerkeleyEnvironment _berkeleyEnvironmentConfig;
+  private static BerkeleyEnvironment _berkeleyEnvironment;
   
   public static BerkeleyEnvironment getInstance() {
-    if (_berkeleyEnvironmentConfig == null)
-      _berkeleyEnvironmentConfig = new BerkeleyEnvironment();
+    if (_berkeleyEnvironment == null)
+      _berkeleyEnvironment = new BerkeleyEnvironment();
     
-    return _berkeleyEnvironmentConfig;
+    return _berkeleyEnvironment;
   }
 
   /* (non-Javadoc)
@@ -46,10 +49,14 @@ public class BerkeleyEnvironment implements IBerkeleyEnvironment {
    */
   @Override
   public Database openConnection(Environment environment, String database, boolean allowCreate, boolean allowDuplicates) {
-    DatabaseConfig databaseConfig = new DatabaseConfig();
-    databaseConfig.setAllowCreate(allowCreate);
-    databaseConfig.setSortedDuplicates(allowDuplicates);
-    return environment.openDatabase(null, database, databaseConfig);
+    DatabaseConfig dbConfig = new DatabaseConfig();
+    dbConfig.setAllowCreate(allowCreate);
+    dbConfig.setSortedDuplicates(allowDuplicates);
+    
+    // Set the duplicate comparator class
+    dbConfig.setDuplicateComparator(BerkeleyComparator.class);
+    dbConfig.setOverrideDuplicateComparator(false);
+    return environment.openDatabase(null, database, dbConfig);
   }
   
   /* (non-Javadoc)
@@ -57,15 +64,26 @@ public class BerkeleyEnvironment implements IBerkeleyEnvironment {
    */
   @Override
   public Environment createDatabaseEnvironment(String folder) throws BerkeleyException {
-    File home = new File(folder);
-    if (!home.exists())
-      if (!home.mkdirs())
-        throw new BerkeleyException("The " + folder + " doesn't exist");
+    File dbDirectory = new File(folder);
+    if (!dbDirectory.exists())
+      if (!dbDirectory.mkdirs())
+        throw new BerkeleyException("The directory " + folder + " does not exist.");
     
-    EnvironmentConfig environmentConfig = new EnvironmentConfig();
-    environmentConfig.setDurability(Durability.COMMIT_SYNC);
-    environmentConfig.setAllowCreate(true);
-    return new Environment(home, environmentConfig);
+    // Instantiate an environment configuration object
+    EnvironmentConfig envConfig = new EnvironmentConfig();
+    envConfig.setDurability(Durability.COMMIT_SYNC);
+    
+    // If the environment is opened for write, then we want to be 
+    // able to create the environment if it does not exist.
+    envConfig.setAllowCreate(true);
+    envConfig.setSharedCache(true);
+    // Instantiate the Environment. This opens it and also possibly
+    // creates it.
+    
+    // Set it large enough so that it won't page.
+    envConfig.setCacheSize(20 * 1024 * 1024);
+    
+    return new Environment(dbDirectory, envConfig);
   }
 
   /* (non-Javadoc)
@@ -74,7 +92,13 @@ public class BerkeleyEnvironment implements IBerkeleyEnvironment {
   @Override
   public void closeConnection(Environment environment) {
     if (environment != null) {
-      environment.close();
+      try {
+        // Clean the log before closing
+        environment.cleanLog();
+        environment.close();
+      } catch (DatabaseException dbe) {
+        System.err.println("Error closing environment" + dbe.toString());
+      }
     }
   }
 
