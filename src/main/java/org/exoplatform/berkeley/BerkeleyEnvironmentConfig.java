@@ -17,75 +17,73 @@
 package org.exoplatform.berkeley;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
-import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.Durability;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
 /**
- * @author <a href="mailto:sondn@exoplatform.com">Ngoc Son Dang</a>
- * @version BerkeleyEnvironmentConfig.java Dec 3, 2013
- * 
+ * Created by The eXo Platform SAS
+ * @author <a href="mailto:exo@exoplatform.com">eXoPlatform</a>
+ *          
+ * @version BerkeleyEnvironmentConfig.java Dec 4, 2013
  */
-public class BerkeleyEnvironmentConfig {
+public class BerkeleyEnvironmentConfig implements EnvironmentConfigurator {
+  
+  private static BerkeleyEnvironmentConfig _berkeleyEnvironmentConfig;
+  
+  public static BerkeleyEnvironmentConfig getInstance() {
+    if (_berkeleyEnvironmentConfig == null)
+      _berkeleyEnvironmentConfig = new BerkeleyEnvironmentConfig();
+    
+    return _berkeleyEnvironmentConfig;
+  }
 
-  // Open the environment. Allow it to be created if it does not already
-  // exist.
-  Environment myDbEnvironment = null;
-
-  /**
-   * Open a database environment by instantiating an Environment object. You
-   * must provide to the constructor the name of the on-disk directory where the
-   * environment is to reside. This directory location must exist or the open
-   * will fail.
-   * 
-   * By default, the environment is not created for you if it does not exist.
-   * Set the creation property to true if you want the environment to be
-   * created.
+  /* (non-Javadoc)
+   * @see org.exoplatform.berkeley.EnvironmentConfigurator#openConnection(java.lang.String, boolean, boolean)
    */
-  public void openConnection() {
+  @Override
+  public Database openConnection(Environment environment, String database, boolean allowCreate, boolean allowDuplicates) {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setAllowCreate(allowCreate);
+    databaseConfig.setSortedDuplicates(allowDuplicates);
+    return environment.openDatabase(null, database, databaseConfig);
+  }
+  
+  /* (non-Javadoc)
+   * @see org.exoplatform.berkeley.EnvironmentConfigurator#createDatabaseEnvironment(java.lang.String)
+   */
+  @Override
+  public Environment createDatabaseEnvironment(String folder) throws BerkeleyException {
+    File home = new File(folder);
+    if (!home.exists())
+      if (!home.mkdirs())
+        throw new BerkeleyException("The " + folder + " doesn't exist");
+    
+    EnvironmentConfig environmentConfig = new EnvironmentConfig();
+    environmentConfig.setDurability(Durability.COMMIT_SYNC);
+    environmentConfig.setAllowCreate(true);
+    return new Environment(home, environmentConfig);
+  }
 
-    //http://docs.oracle.com/cd/E17076_02/html/gsg/JAVA/persistobject.html
-    try {
-      EnvironmentConfig envConfig = new EnvironmentConfig();
-      // If true, the database environment is created when it is opened. If
-      // false, environment open fails if the environment does not exist. This
-      // property has no meaning if the database environment already exists.
-      envConfig.setAllowCreate(true);
-      // If true, configures the database environment to support transactions.
-      envConfig.setTransactional(true);
-      myDbEnvironment = new Environment(new File("/export/dbEnv"), envConfig);
-    } catch (DatabaseException dbe) {
-      // Exception handling goes here
-      System.err.println("Couldn't open database enviroment "
-          + dbe.getMessage());
+  /* (non-Javadoc)
+   * @see org.exoplatform.berkeley.EnvironmentConfigurator#closeConnection()
+   */
+  @Override
+  public void closeConnection(Environment environment) {
+    if (environment != null) {
+      environment.close();
     }
   }
 
-  /**
-   * You close your environment by calling the Environment.close() method. This
-   * method performs a checkpoint, so it is not necessary to perform a sync or a
-   * checkpoint explicitly before calling it.
-   * 
-   * You should close your environment(s) only after all other database
-   * activities have completed. It is recommended that you close any databases
-   * currently open in the environment prior to closing the environment. Closing
-   * the last environment handle in your application causes all internal data
-   * structures to be released. If there are any opened databases or stores,
-   * then DB will complain before closing them as well. At this time, any open
-   * cursors are also closed, and any on-going transactions are aborted.
-   * However, it is recommended that you always close all cursor handles
-   * immediately after their use to ensure concurrency and to release resources
-   * such as page locks.
+  /* (non-Javadoc)
+   * @see org.exoplatform.berkeley.EnvironmentConfigurator#closeDatabase(com.sleepycat.je.Database)
    */
-  public void closeConnection() {
-    try {
-      if (myDbEnvironment != null) {
-        myDbEnvironment.close();
-      }
-    } catch (DatabaseException dbe) {
-      System.err.println("Couldn't close connection " + dbe.getMessage());
-    }
+  @Override
+  public void closeDatabase(Database database) {
+    if (database != null)
+      database.close();
   }
 }
