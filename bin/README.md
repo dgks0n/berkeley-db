@@ -1,4 +1,0 @@
-berkeley-db
-===========
-
-Berkeley DB Java Edition is a open source, transactional storage solution for Java applications. The Direct Persistence Layer (DPL) API is faster and easier to develop, deploy, and manage than serialized object files or ORM-based Java persistence solutions.  The Collections API enhances the standard java.util.collections classes allowing them to be persisted to a local file system and accessed concurrently while protected by ACID transactions. Data is stored by serializing objects and managing class and instance data separately so as not to waste space. Berkeley DB Java Edition is the reliable drop-in solution for complex, fast, and scalable storage.  Source for this release is in 'je-5.0.97-sources.jar', the Javadoc is located at 'http://download.oracle.com/berkeley-db/docs/je/5.0.97/'.
